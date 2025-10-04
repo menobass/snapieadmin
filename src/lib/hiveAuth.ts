@@ -1,4 +1,7 @@
-import { PrivateKey } from '@hiveio/dhive';
+import bs58 from 'bs58';
+import { ec as EC } from 'elliptic';
+import { sha256 } from 'js-sha256';
+import { Buffer } from 'buffer';
 
 // Hive Keychain interface for TypeScript based on actual working implementation
 interface KeychainResponse {
@@ -44,9 +47,48 @@ declare global {
   }
 }
 
+class CustomHiveSigner {
+  private ec = new EC('secp256k1');
+  
+  signChallenge(username: string, challenge: string, timestamp: number, postingKey: string): string {
+    // Step 1: Manual WIF decoding  
+    if (!postingKey.startsWith('5')) {
+      throw new Error('Invalid WIF key format');
+    }
+    
+    const decoded = bs58.decode(postingKey);
+    const privateKeyBytes = decoded.slice(1, 33);
+    const key = this.ec.keyFromPrivate(privateKeyBytes);
+    
+    // Step 2: Construct message
+    const message = `${username}:${challenge}:${timestamp}`;
+    console.log('Signing message with custom implementation:', message);
+    
+    // Step 3: Hash message string directly
+    const hashHex = sha256(message).toString();
+    const hashBuffer = Buffer.from(hashHex, 'hex');
+    console.log('Message hash (hex):', hashHex);
+    
+    // Step 4: Sign with canonical flag
+    const sigObj = key.sign(hashBuffer, { canonical: true });
+    
+    // Step 5: Create 65-byte signature format
+    const recoveryParam = sigObj.recoveryParam ?? 0;
+    const signature = Buffer.concat([
+      sigObj.r.toArrayLike(Buffer, 'be', 32),
+      sigObj.s.toArrayLike(Buffer, 'be', 32),
+      Buffer.from([recoveryParam])
+    ]).toString('hex');
+    
+    console.log('Custom signature created (130 chars):', signature.length, signature.substring(0, 20) + '...');
+    return signature; // Returns 130-character hex string
+  }
+}
+
 export class HiveAuthService {
   private static retryAttempts = 0;
   private static maxRetries = 3;
+  private static customSigner = new CustomHiveSigner();
 
   /**
    * Check if Keychain is available with retry mechanism like your working code
@@ -107,27 +149,18 @@ export class HiveAuthService {
   
 
   /**
-   * Sign a message using a posting key directly (fallback method)
+   * Sign a challenge using your custom implementation (posting key fallback)
    */
-  static signWithPostingKey(message: string, postingKey: string): string {
+  static signWithPostingKey(username: string, challenge: string, timestamp: number, postingKey: string): string {
     try {
-      console.log('Signing message:', message);
+      console.log('🔐 Using CUSTOM signing implementation');
       console.log('Posting key length:', postingKey.length);
       console.log('Posting key starts with:', postingKey.substring(0, 5));
       
-      const privateKey = PrivateKey.fromString(postingKey);
-      console.log('Private key parsed successfully');
-      
-      const messageBuffer = Buffer.from(message, 'utf8');
-      console.log('Message buffer created, length:', messageBuffer.length);
-      
-      const signature = privateKey.sign(messageBuffer);
-      console.log('Signature created successfully');
-      
-      return signature.toString();
+      return this.customSigner.signChallenge(username, challenge, timestamp, postingKey);
     } catch (error) {
-      console.error('Signing error details:', error);
-      throw new Error(`Invalid posting key or signing failed: ${error instanceof Error ? error.message : String(error)}`);
+      console.error('Custom signing error:', error);
+      throw new Error(`Custom signing failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

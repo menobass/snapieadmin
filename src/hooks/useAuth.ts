@@ -28,21 +28,27 @@ export function useAuth(): UseAuthReturn {
       
       // Step 2: Sign the challenge
       console.log('Step 2: Signing challenge...');
-      const message = HiveAuthService.formatChallengeMessage(
-        username, 
-        challengeResponse.challenge, 
-        challengeResponse.timestamp
-      );
 
       let signature: string;
       
       if (postingKey) {
-        // Use manual posting key (preferred for localhost/development)
-        console.log('Using manual posting key for signing...');
-        signature = HiveAuthService.signWithPostingKey(message, postingKey);
+        // Use manual posting key with CUSTOM signing implementation
+        console.log('Using CUSTOM posting key signing...');
+        signature = HiveAuthService.signWithPostingKey(
+          username, 
+          challengeResponse.challenge, 
+          challengeResponse.timestamp, 
+          postingKey
+        );
       } else if (HiveAuthService.isKeychainAvailable()) {
         // Use Hive Keychain for signing (handshake + sign in one step)
+        // Note: Keychain still needs the formatted message for compatibility
         console.log('Using Hive Keychain for signing...');
+        const message = HiveAuthService.formatChallengeMessage(
+          username, 
+          challengeResponse.challenge, 
+          challengeResponse.timestamp
+        );
         signature = await HiveAuthService.signWithKeychain(username, message);
       } else {
         throw new Error('No signing method available. Please install Hive Keychain or provide a posting key.');
