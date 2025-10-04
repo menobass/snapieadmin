@@ -1,4 +1,17 @@
-# Snapie Admin Portal
+# SnapieAdmin
+
+An admin portal for managing blacklisted users in the Snapie application. Built with Next.js, TypeScript, and Tailwind CSS with full Hive blockchain authentication.
+
+## Features
+
+- 🔐 **Hive Blockchain Authentication** - Secure challenge-response authentication flow
+- 🔑 **Hive Keychain Integration** - Browser extension support with posting key fallback
+- 👥 **User Management** - Add/Remove blacklisted users via dashboard
+- 🌐 **API Integration** - CORS-safe proxy integration with menosoft.xyz backend
+- 📱 **Responsive Design** - Modern UI with Tailwind CSS and status indicators
+- ⚡ **Next.js App Router** - Fast, modern React framework with Turbopack
+- 🛡️ **JWT Token Management** - Secure token handling with localStorage persistence
+- 🔧 **Configurable Port** - Environment-based port configuration for deploymentin Portal
 
 An admin portal for managing blacklisted users in the Snapie application. Built with Next.js, TypeScript, and Tailwind CSS.
 
@@ -22,14 +35,22 @@ An admin portal for managing blacklisted users in the Snapie application. Built 
 
 ### Installation
 
-1. Clone the repository or navigate to the project directory
-2. Install dependencies:
+1. Clone the repository:
+```bash
+git clone https://github.com/menobass/snapieadmin.git
+cd snapieadmin
+```
 
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Configure your API endpoints in `src/lib/api.ts` if needed (currently set to `https://menosoft.xyz/api`)
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+# Edit .env.local with your configuration
+```
 
 ### Development
 
@@ -40,6 +61,15 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+### Environment Variables
+
+Copy `.env.example` to `.env.local` and configure:
+
+- `PORT` - Port number for the development server (default: 3000)
+- `NEXT_PUBLIC_BASE_API_URL` - Your backend API URL
+- `NEXT_PUBLIC_APP_NAME` - Application name
+- `NEXT_PUBLIC_APP_VERSION` - Application version
 
 ### Building for Production
 
@@ -52,17 +82,23 @@ npm run start
 
 ```
 src/
-├── app/                 # Next.js App Router pages
-│   ├── login/          # Login page
-│   ├── dashboard/      # Admin dashboard
-│   └── page.tsx        # Home page (redirects based on auth)
-├── components/         # React components
-│   ├── LoginForm.tsx   # Authentication form
-│   └── Dashboard.tsx   # Main admin interface
-├── lib/                # Utilities and services
-│   └── api.ts          # API service with JWT handling
-└── types/              # TypeScript type definitions
-    └── auth.ts         # Authentication types
+├── app/                    # Next.js App Router
+│   ├── api/               # CORS proxy API routes
+│   │   ├── auth/          # Authentication endpoints
+│   │   └── blacklisted/   # User management endpoints
+│   ├── login/             # Login page
+│   ├── dashboard/         # Admin dashboard
+│   └── page.tsx           # Home page (auth redirect)
+├── components/            # React components
+│   ├── LoginForm.tsx      # Enhanced auth form with status indicators
+│   └── Dashboard.tsx      # Main admin interface
+├── hooks/                 # Custom React hooks
+│   └── useAuth.ts         # Authentication state management
+├── lib/                   # Utilities and services
+│   ├── api.ts             # API service with JWT handling
+│   └── hiveAuth.ts        # Hive Keychain integration
+└── types/                 # TypeScript definitions
+    └── auth.ts            # Authentication types
 ```
 
 ## API Integration
