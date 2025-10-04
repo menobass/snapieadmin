@@ -80,15 +80,25 @@ export class HiveAuthService {
     }
 
     return new Promise((resolve) => {
-      window.hive_keychain!.requestHandshake((response) => {
-        if (response.success && response.data?.username) {
-          console.log('Keychain connected:', response.data.username);
-          resolve({ success: true, username: response.data.username });
-        } else {
-          console.error('Keychain connection failed:', response);
+      window.hive_keychain!.requestHandshake((response: unknown) => {
+        console.log('Keychain handshake response:', response);
+        
+        const resp = response as { success?: boolean; data?: { username?: string }; error?: string; message?: string };
+        
+        if (resp && resp.success && resp.data?.username) {
+          console.log('Keychain connected:', resp.data.username);
+          resolve({ success: true, username: resp.data.username });
+        } else if (resp) {
+          console.error('Keychain connection failed:', resp);
           resolve({ 
             success: false, 
-            error: response.error || response.message || 'Failed to connect to Keychain' 
+            error: resp.error || resp.message || 'Failed to connect to Keychain' 
+          });
+        } else {
+          console.error('Keychain response is undefined or null');
+          resolve({ 
+            success: false, 
+            error: 'No response from Keychain' 
           });
         }
       });
