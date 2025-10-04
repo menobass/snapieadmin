@@ -72,71 +72,51 @@ export class HiveAuthService {
   }
 
   /**
-   * Connect to Keychain using handshake (like your working code)
+   * Connect and sign with Hive Keychain in one step (following working pattern)
    */
-  static async connectKeychain(): Promise<{ success: boolean; username?: string; error?: string }> {
-    if (!window.hive_keychain) {
-      return { success: false, error: 'Keychain not available. Please install Hive Keychain extension.' };
+  static async signWithKeychain(username: string, message: string): Promise<string> {
+    if (typeof window === 'undefined' || !window.hive_keychain) {
+      throw new Error('Hive Keychain not available');
     }
 
-    return new Promise((resolve) => {
-      window.hive_keychain!.requestHandshake((response: unknown) => {
-        console.log('Keychain handshake response:', response);
+    return new Promise((resolve, reject) => {
+      console.log('Step 1: Requesting handshake with Keychain...');
+      
+      // Step 1: Handshake
+      window.hive_keychain!.requestHandshake((handshakeResponse: unknown) => {
+        console.log('Handshake response:', handshakeResponse);
         
-        const resp = response as { success?: boolean; data?: { username?: string }; error?: string; message?: string };
+        const handshake = handshakeResponse as { error?: string };
         
-        if (resp && resp.success && resp.data?.username) {
-          console.log('Keychain connected:', resp.data.username);
-          resolve({ success: true, username: resp.data.username });
-        } else if (resp) {
-          console.error('Keychain connection failed:', resp);
-          resolve({ 
-            success: false, 
-            error: resp.error || resp.message || 'Failed to connect to Keychain' 
-          });
-        } else {
-          console.error('Keychain response is undefined or null');
-          resolve({ 
-            success: false, 
-            error: 'No response from Keychain' 
-          });
+        if (!handshakeResponse || handshake.error) {
+          return reject(new Error('Keychain handshake failed'));
         }
+
+        console.log('Step 2: Signing challenge with posting key...');
+
+        // Step 2: Sign challenge string
+        window.hive_keychain!.requestSignBuffer(
+          username,
+          message,
+          'Posting', // can be "Posting", "Active", or "Memo"
+          (signResponse: unknown) => {
+            console.log('Sign response:', signResponse);
+            
+            const sign = signResponse as { error?: string; result?: string };
+
+            if (!signResponse || sign.error) {
+              return reject(new Error('Failed to sign challenge'));
+            }
+
+            // success
+            resolve(sign.result || '');
+          }
+        );
       });
     });
   }
 
-  /**
-   * Sign a message using Hive Keychain (browser extension)
-   */
-  static async signWithKeychain(username: string, message: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!window.hive_keychain) {
-        reject(new Error('Hive Keychain not installed. Please install the browser extension.'));
-        return;
-      }
-
-      try {
-        console.log('Signing message with Keychain:', { username, message });
-        
-        window.hive_keychain.requestSignBuffer(
-          username,
-          message,
-          'Posting',
-          (response: KeychainResponse) => {
-            console.log('Keychain response:', response);
-            if (response.success && response.result) {
-              resolve(response.result);
-            } else {
-              reject(new Error(response.error || response.message || 'Keychain signing failed'));
-            }
-          }
-        );
-      } catch (error) {
-        console.error('Keychain signing error:', error);
-        reject(new Error('Keychain interaction failed: ' + (error instanceof Error ? error.message : 'Unknown error')));
-      }
-    });
-  }
+  
 
   /**
    * Sign a message using a posting key directly (fallback method)
