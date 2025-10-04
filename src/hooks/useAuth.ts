@@ -58,6 +58,8 @@ export function useAuth(): UseAuthReturn {
       });
 
       console.log('Authentication successful:', authResponse.message);
+      console.log('JWT token received and stored');
+      console.log('Returning true to trigger navigation...');
       return true;
 
     } catch (err) {

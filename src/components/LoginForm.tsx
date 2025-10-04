@@ -44,7 +44,10 @@ export default function LoginForm() {
     );
 
     if (success) {
+      console.log('✅ Authentication successful, navigating to dashboard...');
       router.push('/dashboard');
+    } else {
+      console.log('❌ Authentication failed, staying on login page');
     }
   };
 
