@@ -36,14 +36,26 @@ export function useAuth(): UseAuthReturn {
 
       let signature: string;
       
-      if (HiveAuthService.isKeychainAvailable()) {
-        // Use Hive Keychain if available
-        console.log('Using Hive Keychain for signing...');
-        signature = await HiveAuthService.signWithKeychain(username, message);
-      } else if (postingKey) {
-        // Fallback to manual posting key
+      if (postingKey) {
+        // Use manual posting key (preferred for localhost/development)
         console.log('Using manual posting key for signing...');
         signature = HiveAuthService.signWithPostingKey(message, postingKey);
+      } else if (HiveAuthService.isKeychainAvailable()) {
+        // Try Keychain if no posting key provided
+        console.log('Connecting to Keychain first...');
+        const connectionResult = await HiveAuthService.connectKeychain();
+        
+        if (!connectionResult.success) {
+          throw new Error(connectionResult.error || 'Failed to connect to Keychain. Try using your posting key instead.');
+        }
+        
+        if (connectionResult.username !== username) {
+          throw new Error(`Keychain connected user (${connectionResult.username}) doesn't match entered username (${username})`);
+        }
+        
+        // Use Hive Keychain for signing
+        console.log('Using Hive Keychain for signing...');
+        signature = await HiveAuthService.signWithKeychain(username, message);
       } else {
         throw new Error('No signing method available. Please install Hive Keychain or provide a posting key.');
       }

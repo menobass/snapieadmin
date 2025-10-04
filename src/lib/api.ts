@@ -13,7 +13,7 @@ interface AuthenticatedRequestOptions {
 class ApiService {
   private api: AxiosInstance;
   private token: string | null = null;
-  private baseUrl: string = process.env.NEXT_PUBLIC_BASE_API_URL || 'https://menosoft.xyz/api';
+  private baseUrl: string = '/api'; // Use local proxy routes to avoid CORS
 
   constructor() {
     this.api = axios.create({
