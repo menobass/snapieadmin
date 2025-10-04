@@ -4,9 +4,9 @@
   "description": "Admin portal for managing blacklisted users in Snapie app",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port ${PORT:-3000}",
-    "build": "next build --turbopack",
-    "start": "next start --port ${PORT:-3000}",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack", 
+    "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
