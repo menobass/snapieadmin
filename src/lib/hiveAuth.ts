@@ -72,7 +72,7 @@ export class HiveAuthService {
   }
 
   /**
-   * Connect and sign with Hive Keychain in one step (following working pattern)
+   * Connect and sign with Hive Keychain in one step (corrected implementation)
    */
   static async signWithKeychain(username: string, message: string): Promise<string> {
     if (typeof window === 'undefined' || !window.hive_keychain) {
@@ -82,34 +82,22 @@ export class HiveAuthService {
     return new Promise((resolve, reject) => {
       console.log('Step 1: Requesting handshake with Keychain...');
       
-      // Step 1: Handshake
-      window.hive_keychain!.requestHandshake((handshakeResponse: unknown) => {
-        console.log('Handshake response:', handshakeResponse);
-        
-        const handshake = handshakeResponse as { error?: string };
-        
-        if (!handshakeResponse || handshake.error) {
-          return reject(new Error('Keychain handshake failed'));
-        }
-
-        console.log('Step 2: Signing challenge with posting key...');
+      window.hive_keychain!.requestHandshake(() => {
+        console.log('Handshake complete (no payload expected). Proceeding to sign...');
 
         // Step 2: Sign challenge string
         window.hive_keychain!.requestSignBuffer(
           username,
           message,
-          'Posting', // can be "Posting", "Active", or "Memo"
-          (signResponse: unknown) => {
+          'Posting',
+          (signResponse: KeychainResponse) => {
             console.log('Sign response:', signResponse);
-            
-            const sign = signResponse as { error?: string; result?: string };
 
-            if (!signResponse || sign.error) {
-              return reject(new Error('Failed to sign challenge'));
+            if (!signResponse || !signResponse.success || !signResponse.result) {
+              return reject(new Error(signResponse?.error || 'Failed to sign challenge'));
             }
 
-            // success
-            resolve(sign.result || '');
+            resolve(signResponse.result);
           }
         );
       });
