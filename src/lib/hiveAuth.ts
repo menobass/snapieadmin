@@ -133,12 +133,23 @@ export class HiveAuthService {
    */
   static signWithPostingKey(message: string, postingKey: string): string {
     try {
+      console.log('Signing message:', message);
+      console.log('Posting key length:', postingKey.length);
+      console.log('Posting key starts with:', postingKey.substring(0, 5));
+      
       const privateKey = PrivateKey.fromString(postingKey);
+      console.log('Private key parsed successfully');
+      
       const messageBuffer = Buffer.from(message, 'utf8');
+      console.log('Message buffer created, length:', messageBuffer.length);
+      
       const signature = privateKey.sign(messageBuffer);
+      console.log('Signature created successfully');
+      
       return signature.toString();
-    } catch {
-      throw new Error('Invalid posting key or signing failed');
+    } catch (error) {
+      console.error('Signing error details:', error);
+      throw new Error(`Invalid posting key or signing failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
