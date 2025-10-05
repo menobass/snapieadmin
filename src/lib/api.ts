@@ -158,13 +158,20 @@ class ApiService {
 
   // Blacklisted users methods
   async getBlacklistedUsers(): Promise<User[]> {
-    return await this.makeAuthenticatedRequest<User[]>({
+    const response = await this.makeAuthenticatedRequest<{ blacklistedUsers: string[] }>({
       path: '/blacklisted',
       method: 'GET',
       shouldCache: true,
       timeoutMs: 10000,
       retries: 2
     });
+    // Convert array of usernames to User objects
+    return response.blacklistedUsers.map((username) => ({
+      id: username, // Use username as ID since backend doesn't provide IDs
+      username: username,
+      reason: undefined,
+      createdAt: undefined
+    }));
   }
 
   async addUserToBlacklist(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {

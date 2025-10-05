@@ -58,16 +58,11 @@ export default function Dashboard() {
     e.preventDefault();
     if (!deleteUsername.trim()) return;
 
-    const userToDelete = users.find(u => u.username === deleteUsername);
-    if (!userToDelete) {
-      setMessage({ type: 'error', text: `User ${deleteUsername} not found in list` });
-      return;
-    }
-
     setLoading(true);
     setMessage(null);
     try {
-      await apiService.removeUserFromBlacklist(userToDelete.id);
+      // Use username directly as the ID for deletion
+      await apiService.removeUserFromBlacklist(deleteUsername);
       setMessage({ type: 'success', text: `Removed ${deleteUsername} from blacklist` });
       setDeleteUsername('');
       // Reload list
