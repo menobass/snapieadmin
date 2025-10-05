@@ -174,9 +174,8 @@ class ApiService {
     }));
   }
 
-  async addUserToBlacklist(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-    const response: AxiosResponse<User> = await this.api.post('/blacklist', user);
-    return response.data;
+  async addUserToBlacklist(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
+    await this.api.post('/blacklisted', { username: user.username });
   }
 
   async removeUserFromBlacklist(userId: string): Promise<void> {
