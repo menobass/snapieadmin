@@ -25,7 +25,7 @@ interface AuthenticatedRequestOptions {
 class ApiService {
   private api: AxiosInstance;
   private token: string | null = null;
-  private baseUrl: string = '/api'; // Use local proxy routes to avoid CORS
+  private baseUrl: string = '/api'; // Use local proxy routes in development to avoid CORS
 
   constructor() {
     this.api = axios.create({

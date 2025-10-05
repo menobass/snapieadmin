@@ -98,12 +98,13 @@ export default function LoginForm() {
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-600">
           <p className="mb-2">Snapie Administration Portal</p>
-          <div className="flex justify-center space-x-4">
+          <div className="flex justify-center space-x-4" suppressHydrationWarning>
             <a 
               href="https://hive.io" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800"
+              suppressHydrationWarning
             >
               Hive
             </a>
@@ -113,6 +114,7 @@ export default function LoginForm() {
               target="_blank" 
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800"
+              suppressHydrationWarning
             >
               GitHub
             </a>
