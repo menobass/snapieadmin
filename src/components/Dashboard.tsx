@@ -3,13 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiService } from '@/lib/api';
-
-interface User {
-  id: string;
-  username: string;
-  reason?: string;
-  createdAt?: string;
-}
+import { User } from '@/types';
+import DiscordReports from './DiscordReports';
 
 export default function Dashboard() {
   const [users, setUsers] = useState<User[]>([]);
@@ -49,6 +44,23 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Failed to add user:', error);
       setMessage({ type: 'error', text: `Failed to add ${addUsername}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBlacklistFromDiscord = async (username: string) => {
+    setAddUsername(username);
+    setLoading(true);
+    setMessage(null);
+    try {
+      await apiService.addUserToBlacklist({ username });
+      setMessage({ type: 'success', text: `Added ${username} to blacklist from Discord report` });
+      setAddUsername('');
+      await loadList();
+    } catch (error) {
+      console.error('Failed to add user:', error);
+      setMessage({ type: 'error', text: `Failed to add ${username}` });
     } finally {
       setLoading(false);
     }
@@ -191,6 +203,9 @@ export default function Dashboard() {
             </button>
           </form>
         </div>
+
+        {/* Discord Reports */}
+        <DiscordReports onBlacklistUser={handleBlacklistFromDiscord} />
       </div>
     </div>
   );

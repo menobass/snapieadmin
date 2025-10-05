@@ -1,16 +1,9 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import { User, DiscordMessage } from '@/types';
 
 interface AuthResponse {
   token: string;
   message?: string;
-}
-
-interface User {
-  id: string;
-  username: string;
-  reason?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 interface AuthenticatedRequestOptions {
@@ -180,6 +173,11 @@ class ApiService {
 
   async removeUserFromBlacklist(username: string): Promise<void> {
     await this.api.delete(`/blacklisted?username=${username}`);
+  }
+
+  async getDiscordMessages(): Promise<DiscordMessage[]> {
+    const response: AxiosResponse<{ messages: DiscordMessage[] }> = await this.api.get('/discord/messages');
+    return response.data.messages;
   }
 }
 
