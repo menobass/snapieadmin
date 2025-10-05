@@ -178,8 +178,8 @@ class ApiService {
     await this.api.post('/blacklisted', { username: user.username });
   }
 
-  async removeUserFromBlacklist(userId: string): Promise<void> {
-    await this.api.delete(`/blacklist/${userId}`);
+  async removeUserFromBlacklist(username: string): Promise<void> {
+    await this.api.delete(`/blacklisted?username=${username}`);
   }
 }
 
