@@ -155,7 +155,7 @@ class ApiService {
       path: '/blacklisted',
       method: 'GET',
       shouldCache: true,
-      timeoutMs: 10000,
+      timeoutMs: 30000, // Increased to 30 seconds
       retries: 2
     });
     // Convert array of usernames to User objects
