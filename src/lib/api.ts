@@ -1,5 +1,17 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { AuthResponse, User, ChallengeResponse, VerifyRequest } from '@/types/auth';
+
+interface AuthResponse {
+  token: string;
+  message?: string;
+}
+
+interface User {
+  id: string;
+  username: string;
+  reason?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 interface AuthenticatedRequestOptions {
   path: string;
@@ -79,27 +91,17 @@ class ApiService {
     throw lastError;
   }
 
-  // Step 1: Request challenge from server
-  async requestChallenge(username: string): Promise<ChallengeResponse> {
+  // Simple admin login
+  async adminLogin(username: string, password: string): Promise<AuthResponse> {
     try {
-      const response: AxiosResponse<ChallengeResponse> = await this.api.post('/auth/challenge', {
-        username
+      const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/admin-login', {
+        username,
+        password
       });
-      return response.data;
-    } catch (error) {
-      console.error('Challenge request failed:', error);
-      throw error;
-    }
-  }
-
-  // Step 3: Verify signature and get JWT token
-  async verifyChallenge(verifyRequest: VerifyRequest): Promise<AuthResponse> {
-    try {
-      const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/verify', verifyRequest);
       this.setToken(response.data.token);
       return response.data;
     } catch (error) {
-      console.error('Challenge verification failed:', error);
+      console.error('Admin login failed:', error);
       throw error;
     }
   }
