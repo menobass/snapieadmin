@@ -179,6 +179,10 @@ class ApiService {
     const response: AxiosResponse<{ messages: DiscordMessage[] }> = await this.api.get('/discord/messages');
     return response.data.messages;
   }
+
+  async downvoteHivePost(data: { author?: string; permlink?: string; url?: string; weight?: number }): Promise<void> {
+    await this.api.post('/hive/downvote', data);
+  }
 }
 
 export const apiService = new ApiService();

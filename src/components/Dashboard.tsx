@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchFilter, setSearchFilter] = useState('');
+  const [hivePostUrl, setHivePostUrl] = useState('');
   const router = useRouter();
 
   const ITEMS_PER_PAGE = 20;
@@ -77,6 +78,24 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Failed to add user:', error);
       setMessage({ type: 'error', text: `Failed to add ${username}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownvotePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hivePostUrl.trim()) return;
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      await apiService.downvoteHivePost({ url: hivePostUrl });
+      setMessage({ type: 'success', text: `Successfully downvoted post with @snapie` });
+      setHivePostUrl('');
+    } catch (error) {
+      console.error('Failed to downvote post:', error);
+      setMessage({ type: 'error', text: `Failed to downvote post` });
     } finally {
       setLoading(false);
     }
@@ -280,6 +299,34 @@ export default function Dashboard() {
               Submit
             </button>
           </form>
+        </div>
+
+        {/* Hive Downvote Form */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">Downvote Post (@snapie)</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Paste a Hive post URL to downvote it with the @snapie account. This will hide the post from your app.
+          </p>
+          <form onSubmit={handleDownvotePost} className="flex gap-3">
+            <input
+              type="url"
+              value={hivePostUrl}
+              onChange={(e) => setHivePostUrl(e.target.value)}
+              placeholder="https://peakd.com/@author/post-permlink"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={loading}
+            />
+            <button
+              type="submit"
+              disabled={loading || !hivePostUrl.trim()}
+              className="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Downvote
+            </button>
+          </form>
+          <p className="text-xs text-gray-500 mt-2">
+            Supports PeakD, Hive.blog, Ecency URLs and @author/permlink format
+          </p>
         </div>
 
         {/* Discord Reports */}
